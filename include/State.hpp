@@ -12,12 +12,11 @@ Memory layout (typical values):
 
 #pragma once
 
-#include <cstdint>
-
+/*BYTE and WORD are used only in context of CPU architecture*/
+using BYTE = uint8_t;
+using WORD = uint16_t;
 
 struct State {
-    using BYTE = std::uint8_t;
-    using WORD = std::uint16_t;
 
     const static int c_MemorySize = 0x1000;
     BYTE Memory[c_MemorySize];
@@ -25,7 +24,8 @@ struct State {
     const static int c_StackAddress = 0xEA0;
     WORD StackPointer;
 
-    BYTE RegistersV[16];
+    const static int c_RegisterAmount = 0xF;
+    BYTE RegistersV[c_RegisterAmount];
     WORD AddressRegisterI;
 
     const static int c_ProgramLoadAddress = 0x200;

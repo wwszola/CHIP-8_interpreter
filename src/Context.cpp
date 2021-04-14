@@ -37,9 +37,14 @@ int Context::LoadProgramFromFile(const std::string& filename) {
 
 }
 
+void Context::LoadMemoryRaw(BYTE* program, int size, WORD address) {
+    std::copy(program, program + size, m_State.Memory + address);
+    m_State.ProgramCounter = address;
+}
+
 int Context::Step(int cyclesToExecute) {
     while (cyclesToExecute > 0) {
-        State::WORD opcode = Fetch();
+        WORD opcode = Fetch();
         if (Execute(opcode) > 0) {
             /*TODO LOG ERROR*/
             break;
@@ -51,15 +56,33 @@ int Context::Step(int cyclesToExecute) {
     return cyclesToExecute;
 }
 
-State::WORD Context::Fetch() {
-    State::WORD opcode;
+int Context::GetMemoryValue(WORD address, BYTE& output) {
+    if (address < State::c_MemorySize) {
+        output = m_State.Memory[address];
+        return 0;
+    }
+    /*TODO LOG DEBUG*/
+    return 1;
+}
+
+int Context::GetRegisterValue(uint8_t number, BYTE& output) {
+    if (number < State::c_RegisterAmount) {
+        output = m_State.RegistersV[number];
+        return 0;
+    }
+    /*TODO LOG DEBUG*/
+    return 1;
+}
+
+WORD Context::Fetch() {
+    WORD opcode;
     opcode = m_State.Memory[m_State.ProgramCounter++];
     opcode <<= 8;
     opcode |= m_State.Memory[m_State.ProgramCounter++];
     return opcode;
 }
 
-int Context::Execute(State::WORD opcode) {
+int Context::Execute(WORD opcode) {
     uint8_t firstNibble = (opcode & 0xF000) >> 12;
     uint8_t secondNibble = (opcode & 0x0F00) >> 8;
     uint8_t thirdNibble = (opcode & 0x00F0) >> 4;

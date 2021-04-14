@@ -26,13 +26,21 @@ public:
     returns 0 for success, 1 for error*/
     int LoadProgramFromFile(const std::string& filename);
 
+    /*Debugging purposes, does not perform any checks
+    Sets m_State.ProgramCounter = address*/
+    void LoadMemoryRaw(BYTE* program, int size, WORD address);
+
     /*Step CPU, if error in program then halts and returns a number of remaining cycles
     cyclesToExecute - number of steps*/
     int Step(int cyclesToExecute);
 
+    /*Debug tools*/
+    int GetMemoryValue(WORD address, BYTE& output);
+    int GetRegisterValue(uint8_t number, BYTE& output);
+
 private:
-    State::WORD Fetch();
-    int Execute(State::WORD opcode);
+    WORD Fetch();
+    int Execute(WORD opcode);
 
     State m_State;
     int m_CyclesCount;
