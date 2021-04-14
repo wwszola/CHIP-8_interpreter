@@ -24,7 +24,7 @@ struct State {
     const static int c_StackAddress = 0xEA0;
     WORD StackPointer;
 
-    const static int c_RegisterAmount = 0xF;
+    const static int c_RegisterAmount = 16;
     BYTE RegistersV[c_RegisterAmount];
     WORD AddressRegisterI;
 

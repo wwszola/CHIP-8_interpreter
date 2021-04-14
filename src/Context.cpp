@@ -42,6 +42,18 @@ void Context::LoadMemoryRaw(BYTE* program, int size, WORD address) {
     m_State.ProgramCounter = address;
 }
 
+void Context::LoadMemoryRaw(WORD* program, int size, WORD address) {
+    BYTE* start = reinterpret_cast<BYTE*>(program);
+    BYTE* end = start + size;
+    int i = 0;
+    while (start + i != end) {
+        //changes byte order in big endian WORD
+        *(m_State.Memory + address + i) = *(start + i + 1 - 2 * (i % 2));
+        ++i;
+    }
+    m_State.ProgramCounter = address;
+}
+
 int Context::Step(int cyclesToExecute) {
     while (cyclesToExecute > 0) {
         WORD opcode = Fetch();
@@ -74,7 +86,7 @@ int Context::GetRegisterValue(uint8_t number, BYTE& output) {
     return 1;
 }
 
-WORD Context::GetProgramCounter(){
+WORD Context::GetProgramCounter() {
     return m_State.ProgramCounter;
 }
 
@@ -158,7 +170,7 @@ int Context::Execute(WORD opcode) {
         }
         case 0xE: {
             //shift left
-            m_State.RegistersV[0xF] = m_State.RegistersV[secondNibble] & 0x80;
+            m_State.RegistersV[0xF] = (m_State.RegistersV[secondNibble] & 0x80) >> 7;
             m_State.RegistersV[secondNibble] <<= 1;
             break;
         }

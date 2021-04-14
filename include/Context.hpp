@@ -29,6 +29,7 @@ public:
     /*Debugging purposes, does not perform any checks
     Sets m_State.ProgramCounter = address*/
     void LoadMemoryRaw(BYTE* program, int size, WORD address);
+    void LoadMemoryRaw(WORD* program, int size, WORD address);
 
     /*Step CPU, if error in program then halts and returns a number of remaining cycles
     cyclesToExecute - number of steps*/
