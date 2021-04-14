@@ -18,7 +18,7 @@ using WORD = uint16_t;
 
 struct State {
 
-    const static int c_MemorySize = 0x1000;
+    const static int c_MemorySize = 4096;
     BYTE Memory[c_MemorySize];
 
     const static int c_StackAddress = 0xEA0;
