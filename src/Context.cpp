@@ -74,6 +74,10 @@ int Context::GetRegisterValue(uint8_t number, BYTE& output) {
     return 1;
 }
 
+WORD Context::GetProgramCounter(){
+    return m_State.ProgramCounter;
+}
+
 WORD Context::Fetch() {
     WORD opcode;
     opcode = m_State.Memory[m_State.ProgramCounter++];

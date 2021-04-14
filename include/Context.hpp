@@ -37,6 +37,7 @@ public:
     /*Debug tools*/
     int GetMemoryValue(WORD address, BYTE& output);
     int GetRegisterValue(uint8_t number, BYTE& output);
+    WORD GetProgramCounter();
 
 private:
     WORD Fetch();
