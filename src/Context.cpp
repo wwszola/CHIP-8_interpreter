@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <fstream>
 
+#define SET(num, n, x) num = num & ~(1 << n) | (x << n); 
+
 Context::Context() {
     Reset();
 }
@@ -104,10 +106,58 @@ int Context::Execute(WORD opcode) {
     uint8_t thirdNibble = (opcode & 0x00F0) >> 4;
 
     switch (firstNibble) {
+    case 0x0: {
+        switch (opcode & 0x0FFF) {
+        case 0xEE: {
+            //returns from subroutine
+            m_State.ProgramCounter = m_State.Memory[--m_State.StackPointer];
+            m_State.ProgramCounter |= m_State.Memory[--m_State.StackPointer] << 8;
+            break;
+        }
+        default: {
+            return 1;
+        }
+        }
+    }
     case 0x1: {
         //jump to address
         m_State.ProgramCounter = opcode & 0x0FFF;
         break;
+    }
+    case 0x2: {
+        //call subroutine
+        m_State.Memory[m_State.StackPointer++] = (m_State.ProgramCounter & 0xFF00) >> 8;
+        m_State.Memory[m_State.StackPointer++] = m_State.ProgramCounter & 0x00FF;
+        m_State.ProgramCounter = opcode & 0x0FFF;
+        break;
+    }
+    case 0x3: {
+        //skip if register==const
+        if (m_State.RegistersV[secondNibble] == opcode & 0x00FF) {
+            ++m_State.ProgramCounter;
+        }
+        break;
+    }
+    case 0x4: {
+        //skip if register!=const
+        if (m_State.RegistersV[secondNibble] == opcode & 0x00FF) {
+            ++m_State.ProgramCounter;
+        }
+        break;
+    }
+    case 0x5: {
+        switch (opcode & 0x000F) {
+        case 0x0: {
+            //skip if two registers equal
+            if (m_State.RegistersV[secondNibble] == m_State.RegistersV[thirdNibble]) {
+                ++m_State.ProgramCounter;
+            }
+            break;
+        }
+        default: {
+            return 1;
+        }
+        }
     }
     case 0x6: {
         //store const in register
@@ -172,6 +222,80 @@ int Context::Execute(WORD opcode) {
             //shift left
             m_State.RegistersV[0xF] = (m_State.RegistersV[secondNibble] & 0x80) >> 7;
             m_State.RegistersV[secondNibble] <<= 1;
+            break;
+        }
+        default: {
+            return 1;
+        }
+        }
+    }
+    case 0x9: {
+        switch (opcode & 0x000F) {
+        case 0x0: {
+            //skip if two registers not equal
+            if (m_State.RegistersV[secondNibble] != m_State.RegistersV[thirdNibble]) {
+                ++m_State.ProgramCounter;
+            }
+            break;
+        }
+        default: {
+            return 1;
+        }
+        }
+    }
+    case 0xA: {
+        //set address register to const
+        m_State.AddressRegisterI = opcode & 0x0FFF;
+        break;
+    }
+    case 0xB: {
+        //jump to address V0+const
+        m_State.ProgramCounter = m_State.RegistersV[0] + opcode & 0X0FFF;
+        break;
+    }
+    case 0xF: {
+        switch (opcode & 0x00FF) {
+        case 0x1E: {
+            //add value of register to I
+            m_State.AddressRegisterI += m_State.RegistersV[secondNibble];
+            break;
+        }
+        case 0x33: {
+            //stores 3 digit BCD of register value at I, I+1, I+2
+            uint16_t value = m_State.RegistersV[secondNibble];
+            uint8_t digits[3] = { 0x0,0x0,0x0 };
+            int i, j;
+            for (i = 0; i < 8; ++i) {
+                for (j = 0; j < 3; ++j) {
+                    if (digits[j] >= 5)digits[j] += 3;
+                }
+                digits[0] <<= 1;
+                SET(digits[0], 0, ((digits[1] & 0b1000) >> 3));
+                digits[1] <<= 1;
+                SET(digits[1], 0, ((digits[2] & 0b1000) >> 3));
+                digits[2] <<= 1;
+                SET(digits[2], 0, ((value & 0x80) >> 7));
+                value <<= 1;
+            }
+            m_State.Memory[m_State.AddressRegisterI] = digits[0];
+            m_State.Memory[m_State.AddressRegisterI + 1] = digits[1];
+            m_State.Memory[m_State.AddressRegisterI + 2] = digits[2];
+            break;
+        }
+        case 0x55: {
+            //stores multiple registers at I, I+1, ...
+            int i;
+            for (i = 0;i <= secondNibble;++i) {
+                m_State.Memory[m_State.AddressRegisterI + i] = m_State.RegistersV[i];
+            }
+            break;
+        }
+        case 0x65: {
+            //loads multiple registers from I, I+1, ...
+            int i;
+            for (i = 0;i <= secondNibble;++i) {
+                m_State.RegistersV[i] = m_State.Memory[m_State.AddressRegisterI + i];
+            }
             break;
         }
         default: {
