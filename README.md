@@ -3,7 +3,9 @@
 # TODO:
 - Implement all instructions concerning math, memory, conditional, jumps
 - Write unit tests not involving display
+- Error logger
 - Create display representation
+- Keyboard input
 - Timers, synchronization
 - Sound
 
