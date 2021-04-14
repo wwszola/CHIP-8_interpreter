@@ -2,4 +2,3 @@ build
 .vscode
 CMakeLists.txt
 main.cpp
-catch_amalgamated.*
