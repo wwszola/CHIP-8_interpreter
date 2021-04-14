@@ -1,10 +1,12 @@
 # CHIP-8_interpreter
 
-# TODO:
-- Implement all instructions concerning math, memory, conditional, jumps
-- Write unit tests not involving display
+# External libraries used
+- https://github.com/catchorg/Catch2 - Unit tests
+
+# TODO
+- Write unit tests for jump, conditional, memory, subroutine instructions
 - Error logger
-- Create display representation
+- Create display representation, fonts loading
 - Keyboard input
 - Timers, synchronization
 - Sound
