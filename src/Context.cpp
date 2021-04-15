@@ -3,7 +3,8 @@
 #include <algorithm>
 #include <fstream>
 
-#define SET(num, n, x) num = num & ~(1 << n) | (x << n); 
+/*Macro setting n-th bit to value x in num*/
+#define SET_BIT(num, n, x) num = num & ~(1 << n) | (x << n); 
 
 Context::Context() {
     Reset();
@@ -92,6 +93,14 @@ WORD Context::GetProgramCounter() {
     return m_State.ProgramCounter;
 }
 
+WORD Context::GetStackPointer() {
+    return m_State.StackPointer;
+}
+
+WORD Context::GetAddressRegisterI() {
+    return m_State.AddressRegisterI;
+}
+
 WORD Context::Fetch() {
     WORD opcode;
     opcode = m_State.Memory[m_State.ProgramCounter++];
@@ -111,13 +120,14 @@ int Context::Execute(WORD opcode) {
         case 0xEE: {
             //returns from subroutine
             m_State.ProgramCounter = m_State.Memory[--m_State.StackPointer];
-            m_State.ProgramCounter |= m_State.Memory[--m_State.StackPointer] << 8;
+            m_State.ProgramCounter += m_State.Memory[--m_State.StackPointer] << 8;
             break;
         }
         default: {
             return 1;
         }
         }
+        break;
     }
     case 0x1: {
         //jump to address
@@ -133,15 +143,15 @@ int Context::Execute(WORD opcode) {
     }
     case 0x3: {
         //skip if register==const
-        if (m_State.RegistersV[secondNibble] == opcode & 0x00FF) {
-            ++m_State.ProgramCounter;
+        if (m_State.RegistersV[secondNibble] == (opcode & 0x00FF)) {
+            m_State.ProgramCounter += 2;
         }
         break;
     }
     case 0x4: {
         //skip if register!=const
-        if (m_State.RegistersV[secondNibble] == opcode & 0x00FF) {
-            ++m_State.ProgramCounter;
+        if (m_State.RegistersV[secondNibble] != (opcode & 0x00FF)) {
+            m_State.ProgramCounter += 2;
         }
         break;
     }
@@ -150,7 +160,7 @@ int Context::Execute(WORD opcode) {
         case 0x0: {
             //skip if two registers equal
             if (m_State.RegistersV[secondNibble] == m_State.RegistersV[thirdNibble]) {
-                ++m_State.ProgramCounter;
+                m_State.ProgramCounter += 2;
             }
             break;
         }
@@ -228,13 +238,14 @@ int Context::Execute(WORD opcode) {
             return 1;
         }
         }
+        break;
     }
     case 0x9: {
         switch (opcode & 0x000F) {
         case 0x0: {
             //skip if two registers not equal
             if (m_State.RegistersV[secondNibble] != m_State.RegistersV[thirdNibble]) {
-                ++m_State.ProgramCounter;
+                m_State.ProgramCounter += 2;
             }
             break;
         }
@@ -242,6 +253,7 @@ int Context::Execute(WORD opcode) {
             return 1;
         }
         }
+        break;
     }
     case 0xA: {
         //set address register to const
@@ -262,19 +274,20 @@ int Context::Execute(WORD opcode) {
         }
         case 0x33: {
             //stores 3 digit BCD of register value at I, I+1, I+2
-            uint16_t value = m_State.RegistersV[secondNibble];
+            //algorithm thanks to https://my.eng.utah.edu/~nmcdonal/Tutorials/BCDTutorial/BCDConversion.html
+            uint8_t value = m_State.RegistersV[secondNibble];
             uint8_t digits[3] = { 0x0,0x0,0x0 };
             int i, j;
             for (i = 0; i < 8; ++i) {
                 for (j = 0; j < 3; ++j) {
                     if (digits[j] >= 5)digits[j] += 3;
                 }
-                digits[0] <<= 1;
-                SET(digits[0], 0, ((digits[1] & 0b1000) >> 3));
-                digits[1] <<= 1;
-                SET(digits[1], 0, ((digits[2] & 0b1000) >> 3));
-                digits[2] <<= 1;
-                SET(digits[2], 0, ((value & 0x80) >> 7));
+                digits[0] = (digits[0] << 1) & 0x0F;
+                SET_BIT(digits[0], 0, ((digits[1] & 0b1000) >> 3));
+                digits[1] = (digits[1] << 1) & 0x0F;
+                SET_BIT(digits[1], 0, ((digits[2] & 0b1000) >> 3));
+                digits[2] = (digits[2] << 1) & 0x0F;
+                SET_BIT(digits[2], 0, ((value & 0x80) >> 7));
                 value <<= 1;
             }
             m_State.Memory[m_State.AddressRegisterI] = digits[0];
@@ -302,6 +315,7 @@ int Context::Execute(WORD opcode) {
             return 1;
         }
         }
+        break;
     }
     default: {
         return 1;

@@ -39,6 +39,8 @@ public:
     int GetMemoryValue(WORD address, BYTE& output);
     int GetRegisterValue(uint8_t number, BYTE& output);
     WORD GetProgramCounter();
+    WORD GetStackPointer();
+    WORD GetAddressRegisterI();
 
 private:
     WORD Fetch();
