@@ -5,7 +5,7 @@
 #include "Context.hpp"
 
 TEST_CASE("Single instruction tests") {
-    Context context;
+    CpuContext context;
     context.Reset();
 
     WORD address = 0x200;

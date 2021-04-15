@@ -2,7 +2,7 @@
 Class used for interacting with CPU
 
 Example use:
-Context context;
+CpuContext context;
 context.Reset();
 context.LoadProgramFromFile("program.ch8");
 context.Step(5);
@@ -20,9 +20,9 @@ result from incorrectly merging S-CHIP version
 of language with original one*/
 #define S_CHIP_COMPATIBILITY false
 
-class Context {
+class CpuContext {
 public:
-    Context();
+    CpuContext();
 
     /*Reset m_State, m_CyclesCount*/
     void Reset();

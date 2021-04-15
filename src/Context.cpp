@@ -6,11 +6,11 @@
 /*Macro setting n-th bit to value x in num*/
 #define SET_BIT(num, n, x) num = num & ~(1 << n) | (x << n); 
 
-Context::Context() {
+CpuContext::CpuContext() {
     Reset();
 }
 
-void Context::Reset() {
+void CpuContext::Reset() {
     std::fill(m_State.Memory, m_State.Memory + State::c_MemorySize, 0x0);
     std::fill(m_State.RegistersV, m_State.RegistersV + 16, 0x0);
     m_State.AddressRegisterI = 0x0;
@@ -20,7 +20,7 @@ void Context::Reset() {
     m_CyclesCount = 0;
 }
 
-int Context::LoadProgramFromFile(const std::string& filename) {
+int CpuContext::LoadProgramFromFile(const std::string& filename) {
     std::fstream file(filename.c_str(), std::fstream::in | std::fstream::binary);
     if (!file.is_open())
         return 1;
@@ -40,12 +40,12 @@ int Context::LoadProgramFromFile(const std::string& filename) {
 
 }
 
-void Context::LoadMemoryRaw(BYTE* program, int size, WORD address) {
+void CpuContext::LoadMemoryRaw(BYTE* program, int size, WORD address) {
     std::copy(program, program + size, m_State.Memory + address);
     m_State.ProgramCounter = address;
 }
 
-void Context::LoadMemoryRaw(WORD* program, int size, WORD address) {
+void CpuContext::LoadMemoryRaw(WORD* program, int size, WORD address) {
     BYTE* start = reinterpret_cast<BYTE*>(program);
     BYTE* end = start + size;
     int i = 0;
@@ -57,7 +57,7 @@ void Context::LoadMemoryRaw(WORD* program, int size, WORD address) {
     m_State.ProgramCounter = address;
 }
 
-int Context::Step(int cyclesToExecute) {
+int CpuContext::Step(int cyclesToExecute) {
     while (cyclesToExecute > 0) {
         WORD opcode = Fetch();
         if (Execute(opcode) > 0) {
@@ -71,7 +71,7 @@ int Context::Step(int cyclesToExecute) {
     return cyclesToExecute;
 }
 
-int Context::GetMemoryValue(WORD address, BYTE& output) {
+int CpuContext::GetMemoryValue(WORD address, BYTE& output) {
     if (address < State::c_MemorySize) {
         output = m_State.Memory[address];
         return 0;
@@ -80,7 +80,7 @@ int Context::GetMemoryValue(WORD address, BYTE& output) {
     return 1;
 }
 
-int Context::GetRegisterValue(uint8_t number, BYTE& output) {
+int CpuContext::GetRegisterValue(uint8_t number, BYTE& output) {
     if (number < State::c_RegisterAmount) {
         output = m_State.RegistersV[number];
         return 0;
@@ -89,19 +89,19 @@ int Context::GetRegisterValue(uint8_t number, BYTE& output) {
     return 1;
 }
 
-WORD Context::GetProgramCounter() {
+WORD CpuContext::GetProgramCounter() {
     return m_State.ProgramCounter;
 }
 
-WORD Context::GetStackPointer() {
+WORD CpuContext::GetStackPointer() {
     return m_State.StackPointer;
 }
 
-WORD Context::GetAddressRegisterI() {
+WORD CpuContext::GetAddressRegisterI() {
     return m_State.AddressRegisterI;
 }
 
-WORD Context::Fetch() {
+WORD CpuContext::Fetch() {
     WORD opcode;
     opcode = m_State.Memory[m_State.ProgramCounter++];
     opcode <<= 8;
@@ -109,7 +109,7 @@ WORD Context::Fetch() {
     return opcode;
 }
 
-int Context::Execute(WORD opcode) {
+int CpuContext::Execute(WORD opcode) {
     uint8_t firstNibble = (opcode & 0xF000) >> 12;
     uint8_t secondNibble = (opcode & 0x0F00) >> 8;
     uint8_t thirdNibble = (opcode & 0x00F0) >> 4;
