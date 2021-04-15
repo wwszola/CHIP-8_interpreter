@@ -4,12 +4,12 @@
 - https://github.com/catchorg/Catch2 - Unit tests
 
 # TODO
-- Write unit tests for jump, conditional, memory, subroutine instructions
 - Error logger
 - Create display representation, fonts loading
 - Keyboard input
 - Timers, synchronization
 - Sound
+- Rewrite and fix unit tests marked as TODO
 
 # Resources
 - https://github.com/mattmikolay/chip-8/wiki/CHIP%E2%80%908-Technical-Reference
