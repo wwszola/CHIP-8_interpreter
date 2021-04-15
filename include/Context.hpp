@@ -14,6 +14,12 @@ context.Step(5);
 
 #include "State.hpp"
 
+/*Some versions of references specify different behaviour
+of instructions 0x8XY6, 0x8XYE, 0xFX55, 0xFX65. These differences
+result from incorrectly merging S-CHIP version
+of language with original one*/
+#define S_CHIP_COMPATIBILITY false
+
 class Context {
 public:
     Context();

@@ -217,8 +217,13 @@ int Context::Execute(WORD opcode) {
         }
         case 0x6: {
             //shift right
+#if S_CHIP_COMPATIBILITY
             m_State.RegistersV[0xF] = m_State.RegistersV[secondNibble] & 0x01;
             m_State.RegistersV[secondNibble] >>= 1;
+#else 
+            m_State.RegistersV[0xF] = m_State.RegistersV[thirdNibble] & 0x01;
+            m_State.RegistersV[secondNibble] = m_State.RegistersV[thirdNibble] >> 1;
+#endif
             break;
         }
         case 0x7: {
@@ -230,8 +235,13 @@ int Context::Execute(WORD opcode) {
         }
         case 0xE: {
             //shift left
+#if S_CHIP_COMPATIBILITY
             m_State.RegistersV[0xF] = (m_State.RegistersV[secondNibble] & 0x80) >> 7;
             m_State.RegistersV[secondNibble] <<= 1;
+#else
+            m_State.RegistersV[0xF] = (m_State.RegistersV[thirdNibble] & 0x80) >> 7;
+            m_State.RegistersV[secondNibble] = m_State.RegistersV[thirdNibble] << 1;
+#endif
             break;
         }
         default: {
@@ -297,18 +307,32 @@ int Context::Execute(WORD opcode) {
         }
         case 0x55: {
             //stores multiple registers at I, I+1, ...
+#if S_CHIP_COMPATIBILITY
             int i;
-            for (i = 0;i <= secondNibble;++i) {
+            for (i = 0; i <= secondNibble; ++i) {
                 m_State.Memory[m_State.AddressRegisterI + i] = m_State.RegistersV[i];
             }
+#else
+            int i;
+            for (i = 0; i <= secondNibble; ++i) {
+                m_State.Memory[m_State.AddressRegisterI++] = m_State.RegistersV[i];
+            }
+#endif
             break;
         }
         case 0x65: {
             //loads multiple registers from I, I+1, ...
+#if S_CHIP_COMPATIBILITY
             int i;
-            for (i = 0;i <= secondNibble;++i) {
+            for (i = 0; i <= secondNibble; ++i) {
                 m_State.RegistersV[i] = m_State.Memory[m_State.AddressRegisterI + i];
             }
+#else
+            int i;
+            for (i = 0; i <= secondNibble; ++i) {
+                m_State.RegistersV[i] = m_State.Memory[m_State.AddressRegisterI++];
+            }
+#endif
             break;
         }
         default: {
