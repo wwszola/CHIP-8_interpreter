@@ -2,7 +2,7 @@
 #include "catch_amalgamated.hpp"
 
 
-#include "Context.hpp"
+#include "CpuContext.hpp"
 
 TEST_CASE("Single instruction tests") {
     CpuContext context;
